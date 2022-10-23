@@ -1,6 +1,10 @@
 import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { getContacts } from '../../redux/selectors';
+import { addContacts } from '../../redux/contactsSlice';
+
 import { nanoid } from 'nanoid';
-import PropTypes from 'prop-types';
+
 import {
   FormContacts,
   FormLabel,
@@ -8,7 +12,10 @@ import {
   FormButton,
 } from 'components/ContactsForm/ContactsForm.styled';
 
-export const ContactsForm = ({ addContacts }) => {
+export const ContactsForm = () => {
+  const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
+
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
 
@@ -32,10 +39,19 @@ export const ContactsForm = ({ addContacts }) => {
     }
   };
 
+  const searchDuplicate = name => {
+    return contacts.find(item => item.name === name);
+  };
+
   const onSubmitForm = e => {
     e.preventDefault();
 
-    addContacts({ name, number });
+    if (searchDuplicate(name)) {
+      return alert(`${name} is already in contacts`);
+    }
+
+    dispatch(addContacts({ name, number }));
+
     setName('');
     setNumber('');
   };
@@ -45,7 +61,6 @@ export const ContactsForm = ({ addContacts }) => {
       <FormLabel htmlFor={nameId}>
         Name
         <FormInput
-          id={nameId}
           type="tel"
           name="name"
           value={name}
@@ -58,7 +73,6 @@ export const ContactsForm = ({ addContacts }) => {
       <FormLabel htmlFor={numberId}>
         Number
         <FormInput
-          id={numberId}
           type="tel"
           name="number"
           value={number}
@@ -71,8 +85,4 @@ export const ContactsForm = ({ addContacts }) => {
       <FormButton type="submit">Add contact</FormButton>
     </FormContacts>
   );
-};
-
-ContactsForm.propTypes = {
-  addContacts: PropTypes.func.isRequired,
 };
